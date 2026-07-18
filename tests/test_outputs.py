@@ -59,6 +59,16 @@ class FakeContext:
 
 
 class OutputTests(unittest.TestCase):
+    def test_model_text_methods_return_content(self) -> None:
+        hexagram = SAMPLE.hexagram_text()
+        complete = SAMPLE.as_text()
+
+        self.assertIsInstance(hexagram, str)
+        self.assertIn("第 44 卦 · 姤", hexagram)
+        self.assertIsInstance(complete, str)
+        self.assertIn("【此刻之势】保持观察。", complete)
+        self.assertTrue(complete.endswith(SAMPLE.disclaimer))
+
     def test_forward_nodes(self) -> None:
         nodes = build_messages(SAMPLE, "随机算卦")
         self.assertGreaterEqual(len(nodes), 5)

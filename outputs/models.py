@@ -12,7 +12,9 @@ class DivinationOutput:
     disclaimer: str = "仅供整理思路，不替代专业判断。"
 
     def hexagram_text(self) -> str:
-        return "\n".join((self.title, self.trigrams, self.changing_lines, *self.lines))
+        parts = (self.title, self.trigrams, self.changing_lines, *self.lines)
+        return "\n".join(parts)
 
     def as_text(self) -> str:
-        return f"{self.hexagram_text()}\n\n{self.interpretation}\n\n{self.disclaimer}"
+        content = f"{self.hexagram_text()}\n\n{self.interpretation}\n\n{self.disclaimer}"
+        return content
