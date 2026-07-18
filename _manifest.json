@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+  "id": "github.QlzqQlzq.sg-divination-plugin",
+  "version": "1.0.0",
+  "name": "随机算卦",
+  "description": "面向群聊的随机算卦插件，通过 /sg 问题 起卦，并使用 MaiBot 模型生成克制、务实的情境解读。",
+  "author": {
+    "name": "QlzqQlzq",
+    "url": "https://github.com/QlzqQlzq"
+  },
+  "license": "MIT",
+  "urls": {
+    "repository": "https://github.com/QlzqQlzq/MaiBot-SG-Divination-Plugin",
+    "homepage": "https://github.com/QlzqQlzq/MaiBot-SG-Divination-Plugin",
+    "documentation": "https://github.com/QlzqQlzq/MaiBot-SG-Divination-Plugin/blob/main/README.md",
+    "issues": "https://github.com/QlzqQlzq/MaiBot-SG-Divination-Plugin/issues"
+  },
+  "host_application": {
+    "min_version": "1.0.0",
+    "max_version": "1.99.99"
+  },
+  "sdk": {
+    "min_version": "2.7.0",
+    "max_version": "2.99.99"
+  },
+  "dependencies": [],
+  "capabilities": [
+    "send.text",
+    "llm.generate_with_tools"
+  ],
+  "i18n": {
+    "default_locale": "zh-CN",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  }
+}

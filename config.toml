@@ -1,0 +1,10 @@
+[plugin]
+enabled = true
+config_version = "1.0.0"
+
+[divination]
+model = "planner"
+fallback_model = "replyer"
+temperature = 0.7
+max_tokens = 900
+max_question_length = 500
