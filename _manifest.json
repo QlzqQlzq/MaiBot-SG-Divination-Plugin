@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "id": "github.QlzqQlzq.sg-divination-plugin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "随机算卦",
   "description": "面向群聊的随机算卦插件，通过 /sg 问题 起卦，并使用 MaiBot 模型生成克制、务实的情境解读。",
   "author": {
@@ -26,6 +26,9 @@
   "dependencies": [],
   "capabilities": [
     "send.text",
+    "send.image",
+    "send.forward",
+    "render.html2png",
     "llm.generate_with_tools"
   ],
   "i18n": {

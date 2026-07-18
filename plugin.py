@@ -1,10 +1,12 @@
-from typing import Any
+from typing import Any, Literal
 
 import json
 import secrets
 
 from maibot_sdk import Command, Field, MaiBotPlugin, PluginConfigBase, Tool
 from maibot_sdk.types import ToolParameterInfo, ToolParamType
+
+from .outputs import DivinationOutput, send_output
 
 
 TRIGRAMS = {
@@ -61,9 +63,28 @@ class DivinationSettings(PluginConfigBase):
     max_question_length: int = Field(default=500, ge=20, le=2000, description="问题允许的最大字符数")
 
 
+class OutputSettings(PluginConfigBase):
+    __ui_label__ = "输出设置"
+    __ui_icon__ = "image"
+    __ui_order__ = 2
+
+    mode: Literal["text", "forward", "card"] = Field(
+        default="forward",
+        description="输出方式：普通文本、合并转发聊天记录或图片卡片",
+    )
+    fallback_mode: Literal["text", "forward"] = Field(
+        default="forward",
+        description="所选输出方式失败时使用的回退输出方式",
+    )
+    forward_nickname: str = Field(default="随机算卦", description="合并转发节点显示的昵称")
+    card_width: int = Field(default=900, ge=720, le=1400, description="卡片渲染视口宽度")
+    card_scale: float = Field(default=1.5, ge=1.0, le=2.0, description="卡片图片渲染倍率")
+
+
 class DivinationConfig(PluginConfigBase):
     plugin: PluginSectionConfig = Field(default_factory=PluginSectionConfig)
     divination: DivinationSettings = Field(default_factory=DivinationSettings)
+    output: OutputSettings = Field(default_factory=OutputSettings)
 
 
 class DivinationPlugin(MaiBotPlugin):
@@ -102,7 +123,16 @@ class DivinationPlugin(MaiBotPlugin):
         if not acknowledged:
             return False, "无法发送起卦提示", True
         reading = await self._create_reading(question)
-        sent = await self.ctx.send.text(reading, stream_id)
+        sent = await send_output(
+            self.ctx,
+            reading,
+            stream_id,
+            mode=self.config.output.mode,
+            fallback_mode=self.config.output.fallback_mode,
+            forward_nickname=self.config.output.forward_nickname,
+            card_width=self.config.output.card_width,
+            card_scale=self.config.output.card_scale,
+        )
         if not sent:
             return False, "起卦完成，但回复发送失败", True
         return True, "已强制完成起卦、解读与发送", True
@@ -127,9 +157,9 @@ class DivinationPlugin(MaiBotPlugin):
         if not normalized:
             return {"success": False, "content": "请先提供一个具体问题。"}
         reading = await self._create_reading(normalized)
-        return {"success": True, "content": reading}
+        return {"success": True, "content": reading.as_text()}
 
-    async def _create_reading(self, question: str) -> str:
+    async def _create_reading(self, question: str) -> DivinationOutput:
         hexagram = self._cast_hexagram()
         prompt = self._build_prompt(question, hexagram)
         tools = [
@@ -181,9 +211,9 @@ class DivinationPlugin(MaiBotPlugin):
         if not result.get("success") or not interpretation:
             reason = str(result.get("error") or result.get("message") or "模型没有返回有效内容")
             self.ctx.logger.error("解卦模型调用失败：%s", reason)
-            return f"{self._format_hexagram(hexagram)}\n\nAI 解读暂时不可用，请稍后再试。"
+            interpretation = "AI 解读暂时不可用，请稍后再试。"
 
-        return f"{self._format_hexagram(hexagram)}\n\n{interpretation}\n\n仅供整理思路，不替代专业判断。"
+        return self._build_output(question, hexagram, interpretation)
 
     @staticmethod
     def _extract_reply_message(result: dict[str, Any]) -> str:
@@ -238,6 +268,25 @@ class DivinationPlugin(MaiBotPlugin):
             f"第 {hexagram['number']} 卦 · {hexagram['name']}\n"
             f"{upper[1]}{upper[0]}在上 · {lower[1]}{lower[0]}在下\n"
             f"动爻：{changing}\n" + "\n".join(rendered_lines)
+        )
+
+    @staticmethod
+    def _build_output(question: str, hexagram: dict[str, Any], interpretation: str) -> DivinationOutput:
+        changing = "、".join(str(line) for line in hexagram["changing_lines"]) or "无"
+        upper = hexagram["upper"]
+        lower = hexagram["lower"]
+        rendered_lines = []
+        for value in reversed(hexagram["lines"]):
+            line = "━━━━━━" if value in (7, 9) else "━━  ━━"
+            marker = "  ○" if value == 9 else "  ×" if value == 6 else ""
+            rendered_lines.append(f"　{line}{marker}")
+        return DivinationOutput(
+            question=question,
+            title=f"第 {hexagram['number']} 卦 · {hexagram['name']}",
+            trigrams=f"{upper[1]}{upper[0]}在上 · {lower[1]}{lower[0]}在下",
+            changing_lines=f"动爻：{changing}",
+            lines=tuple(rendered_lines),
+            interpretation=interpretation,
         )
 
     @staticmethod

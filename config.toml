@@ -8,3 +8,10 @@ fallback_model = "replyer"
 temperature = 0.7
 max_tokens = 900
 max_question_length = 500
+
+[output]
+mode = "forward"
+fallback_mode = "forward"
+forward_nickname = "随机算卦"
+card_width = 900
+card_scale = 1.5
