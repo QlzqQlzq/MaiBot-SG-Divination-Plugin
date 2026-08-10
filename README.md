@@ -2,7 +2,7 @@
 
 面向 MaiBot 群聊场景的随机算卦插件。群友发送 `/sg 问题` 后，插件使用三枚钱币法在本地生成六爻，再调用 MaiBot 已配置的模型给出克制、务实的情境解读。
 
-当前版本：`1.1.2`
+当前版本：`1.2.0`
 
 ## 功能
 
@@ -51,7 +51,7 @@ plugins/
 ```toml
 [plugin]
 enabled = true
-config_version = "1.0.0"
+config_version = "1.2.0"
 
 [divination]
 model = "planner"
@@ -59,10 +59,13 @@ fallback_model = "replyer"
 temperature = 0.7
 max_tokens = 900
 max_question_length = 500
+prompt = """
+在这里填写完整的解卦提示词。
+"""
 
 [output]
-mode = "forward"
-fallback_mode = "forward"
+mode = "text"
+fallback_mode = "text"
 forward_nickname = "随机算卦"
 card_width = 900
 card_scale = 1.5
@@ -73,6 +76,7 @@ card_scale = 1.5
 - `temperature`：解读文本的随机度。
 - `max_tokens`：单次解读的最大 token 数。
 - `max_question_length`：问题的最大字符数，超出部分会被截断。
+- `prompt`：完整解卦提示词。实际配置中已预填当前四段式默认提示词，可直接编辑；留空时回退到插件内置默认提示词。
 - `mode`：输出模式，可选 `text`、`forward` 或 `card`。
 - `fallback_mode`：所选输出方式失败时使用的回退方式，可设为 `forward` 或 `text`。
 - `forward_nickname`：合并转发聊天记录中各节点显示的昵称。

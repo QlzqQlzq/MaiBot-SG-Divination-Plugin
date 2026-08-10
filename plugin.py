@@ -61,6 +61,11 @@ class DivinationSettings(PluginConfigBase):
     temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="解读文本的随机度")
     max_tokens: int = Field(default=900, ge=200, le=2000, description="AI 解读最大 token 数")
     max_question_length: int = Field(default=500, ge=20, le=2000, description="问题允许的最大字符数")
+    prompt: str = Field(
+        default="",
+        max_length=6000,
+        description="完整解卦提示词；默认使用 config.toml 中预置的四段式提示词，留空时回退到内置默认值",
+    )
 
 
 class OutputSettings(PluginConfigBase):
@@ -161,7 +166,7 @@ class DivinationPlugin(MaiBotPlugin):
 
     async def _create_reading(self, question: str) -> DivinationOutput:
         hexagram = self._cast_hexagram()
-        prompt = self._build_prompt(question, hexagram)
+        prompt = self._build_prompt(question, hexagram, self.config.divination.prompt)
         tools = [
             {
                 "type": "function",
@@ -290,7 +295,11 @@ class DivinationPlugin(MaiBotPlugin):
         )
 
     @staticmethod
-    def _build_prompt(question: str, hexagram: dict[str, Any]) -> list[dict[str, str]]:
+    def _build_prompt(
+        question: str,
+        hexagram: dict[str, Any],
+        configured_prompt: str = "",
+    ) -> list[dict[str, str]]:
         upper = hexagram["upper"]
         lower = hexagram["lower"]
         changing = "、".join(str(line) for line in hexagram["changing_lines"]) or "无"
@@ -303,6 +312,8 @@ class DivinationPlugin(MaiBotPlugin):
             "【慎】指出应避免的做法；\n【建议的做法】给出 2 到 4 个有先后顺序、可实际执行的步骤。"
             "总长度控制在 250 到 500 个汉字，不使用 Markdown 表格，不反问用户。"
         )
+        if configured_prompt.strip():
+            system = configured_prompt.strip()
         user = (
             f"用户问题：{question}\n"
             f"本卦：第 {hexagram['number']} 卦 {hexagram['name']}\n"

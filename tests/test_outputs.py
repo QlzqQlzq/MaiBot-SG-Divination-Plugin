@@ -1,5 +1,6 @@
 import asyncio
 import base64
+from pathlib import Path
 import unittest
 
 from outputs import DivinationOutput, send_output
@@ -59,6 +60,20 @@ class FakeContext:
 
 
 class OutputTests(unittest.TestCase):
+    def test_prompt_keeps_default_four_part_structure(self) -> None:
+        plugin_source = (Path(__file__).parent.parent / "plugin.py").read_text(encoding="utf-8")
+
+        self.assertIn("卦象只提供联想框架", plugin_source)
+        self.assertIn("请按四段输出", plugin_source)
+        self.assertNotIn("【可能的暗线】", plugin_source)
+
+    def test_config_contains_editable_default_prompt(self) -> None:
+        config = (Path(__file__).parent.parent / "config.toml").read_text(encoding="utf-8")
+
+        self.assertIn('prompt = """', config)
+        self.assertIn("请按四段输出", config)
+        self.assertNotIn("【可能的暗线】", config)
+
     def test_model_text_methods_return_content(self) -> None:
         hexagram = SAMPLE.hexagram_text()
         complete = SAMPLE.as_text()

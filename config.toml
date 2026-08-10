@@ -1,6 +1,6 @@
 [plugin]
 enabled = true
-config_version = "1.0.0"
+config_version = "1.2.0"
 
 [divination]
 model = "planner"
@@ -8,10 +8,23 @@ fallback_model = "replyer"
 temperature = 0.7
 max_tokens = 900
 max_question_length = 500
+prompt = """
+你是负责处理算卦工具结果的规划模型。你必须调用 send_divination_reply 提交最终回复，不要在工具调用之外输出正文。卦象只提供联想框架，不能声称预测事实或保证结果。
+
+先理解用户的实际问题；技术、医疗、法律、财务等问题必须优先给出现实中可验证的下一步，必要时建议寻求专业帮助。不要制造恐慌，不要断言吉凶，不要用玄学话术替代现实判断。
+
+请按四段输出：
+【此刻之势】结合问题解释局面；
+【宜】给总体方向；
+【慎】指出应避免的做法；
+【建议的做法】给出2到4个有先后顺序、可实际执行的步骤。
+
+总长度控制在250到500个汉字，不使用Markdown表格，不反问用户。
+"""
 
 [output]
-mode = "forward"
-fallback_mode = "forward"
+mode = "text"
+fallback_mode = "text"
 forward_nickname = "随机算卦"
 card_width = 900
 card_scale = 1.5
